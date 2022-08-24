@@ -1,0 +1,118 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+
+vector<int> mas_numbers(string &str)
+{
+    vector <int> num = {};
+    int i = 0;
+    while (i<str.length())
+    {
+        if (i == 0)
+        {
+            num.push_back(stoi(str.substr(0, str.find(':'))));
+            i = str.find(":");
+        }
+        if (isnumber(str[i]))
+        {
+            num.push_back(stoi(str.substr(i, (str.find(' ', i)-i))));
+            i = str.find(" ", i);
+        }
+        i = i + 1;
+    }
+    return num;
+}
+
+unsigned int NOD(unsigned int a, unsigned int b) {
+    if (a % b == 0)
+        return b;
+    if (b % a == 0)
+        return a;
+    if (a > b)
+        return NOD(a%b, b);
+    return NOD(a, b%a);
+}
+
+string into(int dy, int dx, int y, int x)
+{
+    string element = "${";
+    if (dy == dx)
+    {
+        element = element + "i";
+    }
+    else
+    {
+        if ((dx*dy)>0)
+            element = element + "i*" + to_string(abs(dy)) + "/" + to_string(abs(dx));
+        else
+            element = element + "-" + "i*" + to_string(abs(dy)) + "/" + to_string(abs(dx));
+    }
+    int b = dx*y-dy*x;
+    if (b == 0)
+    {
+        element = element + "}";
+    }
+    else {
+        unsigned int nod = NOD(abs(dx), abs(b));
+        dx = dx/int(nod);
+        b = b/int(nod);
+        if ((dx*b)>0)
+        {
+            element = element + "+" + to_string(abs(b)) + "/" + to_string(abs(dx)) + "}";
+        }
+        else {
+            element = element + "-" + to_string(abs(b)) + "/" + to_string(abs(dx)) + "}";
+        }
+    }
+    return element;
+}
+
+string solver(string &str, vector<int> & mas1, vector<int> & mas2)
+{
+    string answer = str;
+    int x1 = mas1[0];
+    int x2 = mas2[0];
+    int i = 0;
+    int j = 1;
+    while ((j<mas1.size()) && (i<str.length()))
+    {
+        if (i == 0)
+        {
+            answer.erase(0, str.find(':'));
+            answer = "i" + answer;
+            i = 1;
+        }
+        if (isnumber(answer[i]) && (mas1[j]!=mas2[j]))
+        {
+            int dy = (mas2[j] - mas1[j]);
+            int dx = (x2-x1);
+            unsigned int nod = NOD(abs(dy), abs(dx));
+            dx = dx/int(nod);
+            dy = dy/int(nod);
+            string element = into(dy, dx, mas2[j], x2);
+            answer.erase(i, (answer.find(' ', i)-i));
+            answer.insert(i, element);
+            i = str.find(" ", i);
+            j = j + 1;
+        }
+        i = i + 1;
+
+    }
+    return answer;
+}
+
+
+
+int main(){
+    string str1 = "500: ada 100 a 2 b";
+    string str2 = "200: ada 350 a 2 b";
+    vector <int> mas1 = mas_numbers(str1);
+    vector <int> mas2 = mas_numbers(str2);
+    string str = solver(str1, mas1, mas2);
+    cout << str1 << endl;
+    cout << str2 << endl;
+    cout << str;
+    return 0;
+}
