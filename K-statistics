@@ -1,31 +1,31 @@
 #include <iostream>
 #include <vector>
+#include <deque>
 
-unsigned int quick_select(std::vector<unsigned int> &coordinates, unsigned int aver_index) {
-
+unsigned int quick_select(std::deque<unsigned int> &coordinates, int aver_index) {
     if (coordinates.size() == 1) {
         return coordinates[0];
     }
-    int aver_ind = std::rand() % coordinates.size();
+    int aver_ind = static_cast<int>(coordinates.size()) / 2;
     unsigned int average = coordinates[aver_ind];
-    std::vector<unsigned int> lefts;
-    std::vector<unsigned int> rights;
+    std::deque<unsigned int> lefts;
+    std::deque<unsigned int> rights;
     for (unsigned int coordinate: coordinates) {
         if (coordinate < average) {
             lefts.push_back(coordinate);
-        } else {
-            if (coordinate > average) {
-                rights.push_back(coordinate);
-            }
+        }
+        if (coordinate > average) {
+            rights.push_back(coordinate);
         }
     }
-    if (aver_index <= rights.size()) {
+    if (aver_index <= static_cast<int>(rights.size())) {
         return quick_select(rights, aver_index);
     } else {
-        if (aver_index <= coordinates.size() - lefts.size()) {
+        int sizee = static_cast<int>(coordinates.size() - lefts.size());
+        if (aver_index <= sizee) {
             return average;
         } else {
-            return quick_select(lefts, aver_index + lefts.size() - coordinates.size());
+            return quick_select(lefts, aver_index - sizee);
         }
     }
 }
@@ -33,8 +33,8 @@ unsigned int quick_select(std::vector<unsigned int> &coordinates, unsigned int a
 int main() {
     std::ios_base::sync_with_stdio(false);
     std::cin.tie(nullptr);
-    int num_of_num;
-    int num_of_com;
+    unsigned int num_of_num;
+    unsigned int num_of_com;
     int k_num;
     std::cin >> num_of_num;
     std::cin >> num_of_com;
@@ -47,27 +47,32 @@ int main() {
     }
     int right = 0;
     int left = 0;
-    unsigned int k_stat = 0;
-    std::vector<unsigned int> segment;
+    unsigned int k_stat = -1;
+    std::deque<unsigned int> segment;
     segment.push_back(numbers[0]);
-    bool flag = true;
-    for (int ind = 0; ind < num_of_com; ++ind) {
+    bool flag = false;
+    for (unsigned int ind = 0; ind < num_of_com; ++ind) {
         char direction;
+        unsigned int left_el = 0;
+        unsigned int right_el = 0;
         std::cin >> direction;
         if (direction == 'R') {
             ++right;
-            segment.push_back(numbers[right]);
+            right_el = numbers[right];
+            segment.push_back(right_el);
         } else {
             ++left;
-            segment.erase(segment.begin());
+            left_el = segment[0];
+            segment.pop_front();
         }
-
         if (right - left + 1 < k_num) {
+            k_stat = 0;
             std::cout << -1 << ' ';
             flag = true;
         } else {
-            if (k_stat > numbers[right] or flag) {
-                k_stat = quick_select(segment, segment.size() - k_num + 1);
+            if ((left_el and k_stat >= left_el) or (right_el and k_stat >= right_el) or flag) {
+                k_stat = quick_select(segment, static_cast<int>(segment.size()) - k_num + 1);
+                flag = false;
             }
             std::cout << k_stat << ' ';
         }
