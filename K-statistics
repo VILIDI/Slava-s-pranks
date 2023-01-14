@@ -2,6 +2,57 @@
 #include <vector>
 #include <deque>
 
+struct pr_que {
+    int p;
+    int info;
+    struct pr_que *l;
+};
+
+class Priority_Queue {
+    private:
+        //Declare a front pointer f and initialize it to NULL.
+        pr_que *f;
+    public:
+        size_t size_ = 0;
+        Priority_Queue() {
+        f = nullptr;
+    };
+
+    void push(int i, int p) {
+        pr_que *t, *q;
+        t = new pr_que;
+        t->info = i;
+        t->p = p;
+        if (f == nullptr or p < f->p) {
+            t->l = f;
+            f = t;
+        } else {
+            q = f;
+            while (q->l and q->l->p <= p)
+                q = q->l;
+            t->l = q->l;
+            q->l = t;
+        }
+        size_++;
+    }
+
+    void pop() {
+        pr_que *t;
+        if (f){
+            t = f;
+            std::cout << "Deleted item is: " << t->info << std::endl;
+            f = f->l;
+            free(t);
+            size_--;
+        }
+    }
+    int top() {
+        return f->info;
+    }
+
+};
+
+
 unsigned int quick_select(std::deque<unsigned int> &coordinates, int aver_index) {
     if (coordinates.size() == 1) {
         return coordinates[0];
