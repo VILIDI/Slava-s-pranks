@@ -1,0 +1,83 @@
+#include <iostream>
+#include <vector>
+
+
+using my_type = unsigned long long;
+
+inline my_type hashFunction(my_type aa, my_type bb, my_type cc) {
+    return (aa + bb * 18367 + cc * 18367 * 18367) % 2097169;
+}
+
+my_type arh(my_type aa, my_type bb) {
+    while (bb) {
+        my_type tt = bb;
+        bb = aa % bb;
+        aa = tt;
+    }
+    return aa;
+}
+
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int number;
+    std::cin >> number;
+    std::vector<std::vector<my_type>> vec{0};
+    std::vector<std::vector<std::vector<my_type>>> MyVector(2097169);
+    int num_class = 0;
+    for (int ii = 0; ii < number; ++ii) {
+        my_type xx, yy, zz;
+        my_type aa, bb, cc;
+        std::cin >> aa >> bb >> cc;
+        my_type del = arh(arh(aa, bb), cc);
+        aa /= del;
+        bb /= del;
+        cc /= del;
+        if (aa >= bb) {
+            if ((bb <= cc) & (aa <= cc)) {
+                xx = cc;
+                yy = aa;
+                zz = bb;
+            } else if ((bb <= cc) & (aa > cc)) {
+                xx = aa;
+                yy = cc;
+                zz = bb;
+            } else {
+                xx = aa;
+                yy = bb;
+                zz = cc;
+            }
+        } else {
+            if ((aa <= cc) & (bb <= cc)) {
+                xx = cc;
+                yy = bb;
+                zz = aa;
+            } else if ((aa <= cc) & (bb > cc)) {
+                xx = bb;
+                yy = cc;
+                zz = aa;
+            } else {
+                xx = bb;
+                yy = aa;
+                zz = cc;
+            }
+        }
+        my_type hash = hashFunction(xx, yy, zz);
+        std::vector<my_type> vec1{xx, yy, zz};
+        bool flag = true;
+        for (auto &i: MyVector[hash]) {
+            if (vec1 == i) {
+                flag = false;
+                break;
+            }
+        }
+        if (flag) {
+            MyVector[hash].push_back(vec1);
+            num_class += 1;
+        }
+    }
+    std::cout << num_class;
+    return 0;
+}
