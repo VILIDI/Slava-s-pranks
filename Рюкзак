@@ -20,20 +20,24 @@ int64_t Weight(int64_t number, int64_t volume, std::vector<std::vector<int64_t>>
             }
         }
     }
-
     return cost[number][volume];
 }
 
 int main() {
     int64_t number, volume;
     std::cin >> number >> volume;
+    int64_t number_copy = number;
     std::vector<std::vector<int64_t>> things;
     things.push_back({0, 0, 0});
     for (int64_t i = 0; i < number; ++i) {
         int64_t wi, ci, ki;
         std::cin >> wi >> ci >> ki;
-        things.push_back({wi, ci, ki});
+        if (wi <= volume) {
+            things.push_back({wi, ci, ki});
+        } else {
+            --number_copy;
+        }
     }
-    std::cout << Weight(number, volume, things);
+    std::cout << Weight(number_copy, volume, things);
     return 0;
 }
