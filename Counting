@@ -1,0 +1,65 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int64_t Result(std::vector<int64_t> &numbers, int64_t begin, int64_t end,
+               int64_t bound_up, int64_t bound_low) {
+    if (end == begin) {
+        return (bound_low <= numbers[begin] and numbers[begin] <= bound_up);
+    }
+    int64_t mid = begin + (end - begin) / 2;
+    int64_t number = Result(numbers, begin, mid, bound_up, bound_low)
+                     + Result(numbers, mid + 1, end, bound_up, bound_low);
+
+    int64_t left = begin;
+    int64_t right = begin;
+    for (int64_t ind = mid + 1; ind <= end; ++ind) {
+        while (left <= mid and numbers[ind] > numbers[left] + bound_up) {
+            ++left;
+        }
+        while (right <= mid and numbers[right] + bound_low <= numbers[ind]) {
+            ++right;
+        }
+        number += right - left;
+    }
+
+    left = begin;
+    right = mid + 1;
+    std::vector<int64_t> vector(end - begin + 1, 0);
+    for (int64_t ind = 0; ind <= end - begin; ++ind) { 
+        if (left > mid) {
+            vector[ind] = numbers[right++];
+        } else {
+            if (right <= end) {
+                vector[ind] = numbers[right] < numbers[left] ? numbers[right++] : numbers[left++];
+            } else {
+                vector[ind] = numbers[left++];
+            }
+        }
+    }
+    copy(vector.begin(), vector.end(), numbers.begin() + begin);
+    return number;
+}
+
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    int64_t number;
+    std::cin >> number;
+    std::vector<int64_t> numbers;
+    int64_t num;
+    std::cin >> num;
+    numbers.push_back(num);
+    for (int64_t i = 1; i < number; ++i) {
+        std::cin >> num;
+        numbers.push_back(num);
+        numbers[i] += numbers[i - 1];
+    }
+    int64_t left, right;
+    std::cin >> left >> right;
+
+    std::cout << Result(numbers, 0, number - 1, right, left);
+    return 0;
+}
