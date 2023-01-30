@@ -150,7 +150,10 @@ QueueWithMax* find_queue(int64_t ii, int64_t jj) {
 }
 
 void clear_queues() {
-    queues.clear();
+    for(auto*& e : queues) {
+        delete e;
+        e = nullptr;
+    }
 }
 
 int main() {
