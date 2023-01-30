@@ -1,43 +1,184 @@
+Ilin Denis, [30 янв. 2023 г., 00:54:57]:
 #include <iostream>
+#include <math.h>
 #include <vector>
 #include <algorithm>
 
-int64_t Weight(int64_t number, int64_t volume, std::vector<std::vector<int64_t>> &things) {
-    std::vector<std::vector<int64_t>> cost;
-    for (int64_t i = 0; i <= number; ++i) {
-        std::vector<int64_t> vec(volume+1, 0);
-        cost.push_back(vec);
+struct QueueItem {
+    QueueItem *next;
+    QueueItem *prev;
+
+    QueueItem *maxNext;
+    QueueItem *maxPrev;
+
+    int64_t value;
+
+    explicit QueueItem(int64_t value) {
+        this->next = nullptr;
+        this->prev = nullptr;
+        this->maxNext = nullptr;
+        this->maxPrev = nullptr;
+        this->value = value;
+    }
+};
+
+struct QueueWithMax {
+    QueueItem *first;
+    QueueItem *last;
+
+    QueueItem *maxFirst;
+
+    int64_t maxSize;
+    int64_t actualSize;
+    int64_t addition;
+
+    QueueWithMax() {
+        this->maxSize = 1;
+        this->actualSize = 0;
+        this->addition = 0;
+
+        this->first = nullptr;
+        this->last = nullptr;
+        this->maxFirst = nullptr;
+
+        this->pushBack(0);
     }
 
-    for (int64_t ii = 1; ii <= number; ++ii) {
-        for (int64_t jj = 1; jj <= volume; ++jj) {
-            cost[ii][jj] = cost[ii - 1][jj];
-            int64_t wi = things[ii][0];
-            int64_t ci = things[ii][1];
-            int64_t ki = things[ii][2];
-            for (int64_t ll = std::min(ki, (jj) / wi); ll > 0; --ll) {
-                cost[ii][jj] = std::max(cost[ii][jj], cost[ii - 1][jj - ll * wi] + ci * ll);
-            }
+    ~QueueWithMax() {
+        QueueItem* item = this->first;
+
+        while (item->next != nullptr) {
+            QueueItem* itemToDelete = item;
+            item = item->next;
+            delete itemToDelete;
+        }
+        if (item != nullptr) {
+            delete item;
         }
     }
-    return cost[number][volume];
+
+    void pushBack(int64_t value) {
+        value -= addition;
+
+        QueueItem *item = new QueueItem(value);
+
+        if (this->last != nullptr) {
+            this->last->next = item;
+        }
+
+        item->prev = this->last;
+        this->last = item;
+
+        if (this->first == nullptr) {
+            this->first = item;
+        }
+
+        QueueItem *maxItemRight = this->maxFirst;
+        QueueItem *maxItemLeft = nullptr;
+        while (maxItemRight != nullptr && maxItemRight->value > value) {
+            maxItemLeft = maxItemRight;
+            maxItemRight = maxItemRight->maxNext;
+        }
+
+        if (maxItemLeft != nullptr) {
+            maxItemLeft->maxNext = item;
+            item->maxPrev = maxItemLeft;
+        } else {
+            this->maxFirst = item;
+        }
+
+        if (maxItemRight != nullptr) {
+            maxItemRight->maxPrev = item;
+            item->maxNext = maxItemRight;
+        }
+
+        this->actualSize++;
+        if (this->actualSize > maxSize) {
+            this->popFront();
+        }
+    }
+
+    void popFront() {
+        QueueItem *maxItemLeft = this->first->maxPrev;
+        QueueItem *maxItemRight = this->first->maxNext;
+
+        if (maxItemLeft != nullptr) {
+            maxItemLeft->maxNext = maxItemRight;
+        }
+
+        if (maxItemRight != nullptr) {
+            maxItemRight->maxPrev = maxItemLeft;
+        }
+
+        if (this->maxFirst == this->first) {
+            this->maxFirst = this->first->maxNext;
+        }
+
+        QueueItem *itemToDelete = this->first;
+        this->first = this->first->next;
+        delete itemToDelete;
+
+        this->actualSize--;
+    }
+
+    void incAdd(long add) {
+        this->addition += add;
+    }
+
+    long max() {
+        return this->maxFirst->value + addition;
+    }
+};
+
+const int64_t MAX_BACK_PACK_VOLUME = 100001;
+
+int64_t number, volume;
+std::vector<std::vector<int64_t>> things;
+int64_t w_idx = 0, c_idx = 1, k_idx = 2;
+
+std::vector<std::vector<int64_t>> matrix(2);
+std::vector<QueueWithMax*> queues(MAX_BACK_PACK_VOLUME);
+
+QueueWithMax* find_queue(int64_t ii, int64_t jj) {
+    int64_t qIdx = ii % things[jj][w_idx];
+    int64_t qMaxSize = 1 + std::min(things[jj][k_idx], ii / things[jj][w_idx]);
+    if (queues[qIdx] == nullptr) {
+        queues[qIdx] = new QueueWithMax();
+    }
+    queues[qIdx]->maxSize = qMaxSize;
+    return queues[qIdx];
+}
+
+void clear_queues() {
+    queues.clear();
 }
 
 int main() {
-    int64_t number, volume;
     std::cin >> number >> volume;
-    int64_t number_copy = number;
-    std::vector<std::vector<int64_t>> things;
+
     things.push_back({0, 0, 0});
-    for (int64_t i = 0; i < number; ++i) {
+    for (int64_t i = 1; i <= number; ++i) {
         int64_t wi, ci, ki;
         std::cin >> wi >> ci >> ki;
-        if (wi <= volume) {
-            things.push_back({wi, ci, ki});
-        } else {
-            --number_copy;
-        }
+        things.push_back({wi, ci, ki});
     }
-    std::cout << Weight(number_copy, volume, things);
+
+    matrix[0].resize(MAX_BACK_PACK_VOLUME);
+    matrix[1].resize(MAX_BACK_PACK_VOLUME);
+
+for (int64_t ii = 1; ii <= number; ++ii) {
+        matrix[1].clear();
+        matrix[1][0] = 0;
+        for (int64_t jj = 1; jj <= volume; ++jj) {
+            QueueWithMax *queue = find_queue(jj, ii);
+            queue->incAdd(things[ii][c_idx]);
+            queue->pushBack(matrix[0][jj]);
+            matrix[1][jj] = queue->max();
+        }
+        matrix[0].swap(matrix[1]);
+        clear_queues();
+    }
+    std::cout << matrix[0][volume] << std::endl;
     return 0;
+
 }
