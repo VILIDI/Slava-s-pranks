@@ -1,0 +1,102 @@
+#include <random>
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <map>
+#include <vector>
+
+int64_t get_hash(const std::string &str, const int64_t &pp, const int64_t &mm) {
+    int64_t hash = 0;
+    auto n = static_cast<int>(str.size());
+    for (int i = 1; i <= n; ++i) {
+        hash = (hash * pp + (str[i - 1])) % mm;
+    }
+    return hash;
+}
+
+int64_t get_hash_for_vec(const std::vector<int> &str, const int64_t &pp, const int64_t &mm) {
+    int64_t hash = 0;
+    auto n = static_cast<int>(str.size());
+    for (int i = 1; i <= n; ++i) {
+        hash = (hash * pp + (str[i - 1])) % mm;
+    }
+    return hash;
+}
+
+
+int64_t predict_hash(const int64_t &base_hash, const int64_t &hash, const int64_t &pp,
+                     const int64_t &mm) {
+    int64_t val = (pp * pp * pp * pp * pp * pp * pp) % mm;
+    if (val != 0) {
+        return ((base_hash - hash) % mm) / val;
+    }
+    return 0;
+}
+
+int main() {
+    std::vector<int> alphabet = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+                                 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+                                 80, 81, 82, 83, 84, 85, 86, 87,
+                                 88, 89, 90, 95, 97,
+                                 98, 99, 100, 101, 102, 103, 104,
+                                 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
+                                 117, 118, 119, 120, 121, 122};
+    std::shuffle(alphabet.begin(), alphabet.end(), std::mt19937(std::random_device()()));
+    std::vector<int> alphabet2_ = alphabet;
+    std::vector<int> alphabet3_ = alphabet;
+    std::vector<int> alphabet4_ = alphabet;
+    std::vector<int> alphabet5_ = alphabet;
+    std::vector<int> alphabet6_ = alphabet;
+    std::vector<int> alphabet7_ = alphabet;
+
+    std::shuffle(alphabet2_.begin(), alphabet2_.end(), std::mt19937(std::random_device()()));
+    std::shuffle(alphabet3_.begin(), alphabet3_.end(), std::mt19937(std::random_device()()));
+    std::shuffle(alphabet4_.begin(), alphabet4_.end(), std::mt19937(std::random_device()()));
+    std::shuffle(alphabet5_.begin(), alphabet5_.end(), std::mt19937(std::random_device()()));
+    std::shuffle(alphabet6_.begin(), alphabet6_.end(), std::mt19937(std::random_device()()));
+    std::shuffle(alphabet7_.begin(), alphabet7_.end(), std::mt19937(std::random_device()()));
+    std::string base_str;
+    int64_t mm, pp;
+    std::getline(std::cin, base_str);
+    std::cin >> mm >> pp;
+    int64_t base_hash = get_hash(base_str, pp, mm);
+    auto map_ = std::map<int64_t, std::string>();
+
+for (auto &aa: alphabet) {
+        for (auto &bb: alphabet2_) {
+            for (auto &cc: alphabet3_) {
+                for (auto &dd: alphabet4_) {
+                    for (auto &ee: alphabet5_) {
+                        for (auto &ff: alphabet6_) {
+                            for (auto &gg: alphabet7_) {
+                                std::string str = {static_cast<char>(aa), static_cast<char>(bb),
+                                                   static_cast<char>(cc), static_cast<char>(dd),
+                                                   static_cast<char>(ee), static_cast<char>(ff),
+                                                   static_cast<char>(gg)};
+                                auto str_hash = get_hash_for_vec({aa, bb, cc, dd, ee, ff, gg},
+                                                                 pp, mm);
+                                if (str_hash == base_hash and str != base_str) {
+                                    std::cout << str;
+                                    return 0;
+                                }
+                                auto pred_hash = predict_hash(base_hash, str_hash, pp, mm);
+                                if (pred_hash > 0) {
+                                    if (map_.find(pred_hash) != map_.end()) {
+                                        if (get_hash(str + map_[pred_hash], pp, mm) == base_hash) {
+                                            if (str + map_[pred_hash] != base_str) {
+                                                std::cout << str + map_[pred_hash];
+                                                return 0;
+                                            }
+                                        }
+                                    }
+                                }
+                                map_[str_hash] = str;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
