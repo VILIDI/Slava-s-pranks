@@ -1,0 +1,38 @@
+#include <string>
+#include <random>
+#include <iostream>
+
+char cand[] = "0123456789";
+
+char alphabet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_";
+std::mt19937_64 rnd = std::mt19937_64(std::random_device()());
+std::uniform_int_distribution<int> dist(0, 62);
+
+uint64_t ma, pa;
+
+void shuffle_cand() {
+    for (int i = 0; i < 10; ++i) {
+        cand[i] = alphabet[dist(rnd)];
+    }
+}
+
+uint64_t get_hash(const char *str) {
+    uint64_t res = 0;
+    for (int i = 0; str[i] != '\0'; ++i) {
+        res = (res * pa + str[i]) % ma;
+    }
+    return res;
+}
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
+    std::string str;
+    std::cin >> str >> ma >> pa;
+    uint64_t target = get_hash(str.c_str());
+    while (get_hash(cand) != target) {
+        shuffle_cand();
+    }
+    std::cout << cand << std::endl;
+}
